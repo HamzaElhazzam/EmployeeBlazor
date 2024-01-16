@@ -1,0 +1,66 @@
+﻿@page "/EditArticle/{Id}"
+
+@using EmployeeCrudBlazor.Data
+@inject SQLArticleRepository articleService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Article</h3>
+
+<form class="form-control">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="Id" class="control-label">Id</label>
+                <input readonly form="Id" class="form-control" @bind="@obj.Id" />
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="FirstName" class="control-label">Designation</label>
+                <input form="FirstName" class="form-control" @bind="@obj.Designation" />
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="LastName" class="control-label">Marque</label>
+                <input form="LastName" class="form-control" @bind="@obj.Marque" />
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="PostalCode" class="control-label">Prix</label>
+                <input form="PostalCode" class="form-control" @bind="@obj.Prix" />
+            </div>
+        </div>
+    
+       
+
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <input type="button" class="btn btn-primary" @onclick="UpdateArticle" value="Save Edit" />
+            <input type="button" class="btn btn-danger" @onclick="Cancel" value="Cancel" />
+        </div>
+    </div>
+
+</form>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    Article obj = new Article();
+    protected override async Task OnInitializedAsync()
+    {
+        obj = await Task.Run(() => articleService.GetArticleById(Convert.ToInt32(Id)));
+    }
+
+    protected async void UpdateArticle()
+    {
+        await articleService.UpdateArticleDetails(obj);
+        NavigationManager.NavigateTo("articleslist");
+    }
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

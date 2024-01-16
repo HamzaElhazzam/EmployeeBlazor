@@ -1,0 +1,244 @@
+﻿@page "/BonDeCommande"
+
+@inject SQLBonCommandeRepository SQLCommandeRepository
+@inject SQLEmployeeRepository SQLEmployeeRepository
+@inject SQLArticleRepository SQLArticleRepository
+
+@inject NavigationManager NavigationManager
+
+
+
+<div class="container mt-4">
+    <h3 class="oi oi-command">Add Commande</h3>
+
+    <div class="row">
+        <div class="col-md-4">
+ 
+                <label for="employeeId">Select Client</label>
+                <div class="input-group">
+                    <input class="col-lg-2 ms-1 form-control" type="text" @bind="selectedEmployeeId" />
+                    <select class="form-control" id="employeeId" @bind="selectedEmployeeId">
+                        @foreach (var employee in employees)
+                        {
+                            <option value="@employee.Id">@employee.FirstName</option>
+                        }
+                    </select>
+                </div>
+        </div>
+
+        <div class="col-md-4">
+          
+                <label for="datePicker">Select Date</label>
+                <input type="date" class="form-control" id="datePicker" @bind="selectedDate" />
+        </div>
+        <div class="col-md-4 mt-4">
+            <!-- BonDeCommande.razor -->
+            <a class="btn btn-outline-warning" @onclick="ShowArticleSearchPopup">Search Articles</a>
+            <!-- Include the ArticleSearchPopup component -->
+            <ArticleSearchPopup @ref="articleSearchPopup" />
+
+        </div>
+    </div>
+
+    <!-- Data Grid -->
+    @if (employees is null && commandes is null)
+    {
+        <h3 class="display-3">Loading data ...</h3>
+    }else
+    {
+        <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Designation</th>
+                            <th>Marque</th>
+                            <th>Quantite</th>
+                            <th>Prix</th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                            @foreach (var commande in commandes)
+                        {
+                        <tr>
+                            <td>@commande.Id</td>
+                            <td>@commande.Article.Designation</td>
+                            <td>@commande.Article.Marque</td>
+                            <td>@commande.Quantite</td>
+                            <td>@commande.PrixCommande</td>
+                            <td><a class="btn btn-outline-dark oi oi-pencil" href="/EditBonCommmande/@commande.Id">Edit</a></td>
+                                    <td><a class="btn btn-outline-danger oi oi-trash" @onclick="ShowConfirmationAsync">Delete</a></td>
+                                    @{idDialog = commande.Id;}
+                        </tr>
+                        }
+                        <tr>
+                            <td><input type="text" class="form-control" @bind="articleId" @oninput="HandleIdArticleInput" /></td>
+                            <td><input type="text" class="form-control" @bind="articleDesignation" readonly /></td>
+                            <td><input type="text" class="form-control" @bind="articleMarque" readonly /></td>
+                            <td><input type="text" class="form-control" @bind="quantite" @oninput="HandleQuantiteInput" /></td>
+                            <td><input type="text" class="form-control" @bind="prix" readonly /></td>
+                            <td><a class="btn btn-outline-dark oi oi-plus" @onclick="AddCommande">Save </a> </td>
+                        </tr>
+                    </tbody>
+                </table>
+                    @if(quantite==0 || prix==0)
+                    {
+                        <label class="text-danger">Cannot Add Commande with 0 Price or Quantity</label>
+                    }
+                
+            </div>
+        </div>
+    </div>
+    }
+</div>
+<ConfirmDialog @ref="dialog" />
+
+@code {
+    private string commandeId;
+    public int selectedEmployeeId { get; set; }
+    private DateTime selectedDate;
+    private int articleId;
+    private string articleDesignation;
+    private string articleMarque;
+    
+    private int idDialog;
+    private int quantite;
+    private int prix;
+    private ArticleSearchPopup articleSearchPopup;
+
+    private List<Employee> employees = new List<Employee>();
+    private List<Commande> commandes = new List<Commande>();
+
+    private ConfirmDialog dialog = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await SQLCommandeRepository.GetAllClients();
+        selectedEmployeeId = employees.FirstOrDefault()?.Id ?? 0;
+        commandes = await SQLCommandeRepository.GetAllCommmande();
+        selectedDate = DateTime.Now;
+    }
+
+    private async Task ShowConfirmationAsync()
+    {
+        Commande cmd = await SQLCommandeRepository.GetCommandeById(idDialog);
+        var confirmation = await dialog.ShowAsync(
+            title: "Are you sure you want to delete this?",
+            message1: "This will delete the record. Once deleted can not be rolled back.",
+            message2: $"Do you want to delete commande number {idDialog}?");
+
+        if (confirmation)
+        {
+            
+            await SQLCommandeRepository.DeleteBonCommande(cmd);
+            commandes = await SQLCommandeRepository.GetAllCommmande();
+            NavigationManager.NavigateTo("/BonDeCommande");
+        }
+        else
+        {
+            
+        }
+    }
+
+    private void ShowArticleSearchPopup()
+    {
+        // Show the article search popup
+        articleSearchPopup.Show();
+    }
+
+    protected async Task AddCommande()
+    {
+        Commande commande = new Commande();
+        var article = await SQLArticleRepository.GetArticleById(articleId);
+        if (article != null)
+        {
+            if (quantite != 0)
+            {
+                commande.Date = selectedDate.Date;
+                commande.Quantite = quantite;
+                commande.Id_Employee = selectedEmployeeId;
+                commande.Id_Article = articleId;
+                commande.PrixCommande = article.Prix * quantite;
+                await SQLCommandeRepository.AddBonCommande(commande);
+                commandes = await SQLCommandeRepository.GetAllCommmande();
+                NavigationManager.NavigateTo("/BonDeCommande");
+            }
+        }
+    }
+
+    private async Task HandleIdArticleInput(ChangeEventArgs args)
+    {
+        try
+        {
+            int id = int.Parse(args.Value?.ToString());
+            if (string.IsNullOrWhiteSpace(args.Value?.ToString()) || id == 0)
+            {
+                articleDesignation = "Aucune Designation";
+                articleMarque = "Aucune Marque";
+                quantite = 0;
+                prix = 0;
+            }
+            var article = await SQLArticleRepository.GetArticleById(id);
+            if (article != null)
+            {
+                articleDesignation = article.Designation;
+                articleMarque = article.Marque;
+            }
+            else
+            {
+                articleDesignation = "Aucune Designation";
+                articleMarque = "Aucune Marque";
+                quantite = 0;
+                prix = 0;
+            }
+        }
+        catch (FormatException)
+        {
+            articleDesignation = string.Empty;
+            articleMarque = string.Empty;
+        }
+    }
+
+    private async Task HandleQuantiteInput(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out int newQuantite))
+        { 
+            quantite = newQuantite;
+            await CalculatePriceAsync();
+        }
+        else
+        {
+            quantite = 0;
+            prix = 0;
+        }
+    }
+
+    private async Task CalculatePriceAsync()
+    {
+        try
+        {
+            var article = await SQLArticleRepository.GetArticleById(articleId);
+            if (article != null)
+            {
+                prix = quantite * article.Prix;
+            }
+            else
+            {
+                prix = 0;
+            }
+        }
+        catch(Exception)
+        {
+            prix = 0;
+        }
+    }
+}
+    
+
+        
+    
+
+

@@ -1,0 +1,86 @@
+﻿@page "/DeleteBonCommande/{Idd}"
+@inject SQLBonCommandeRepository SQLBonCommandeRepo;
+@inject SQLArticleRepository SQLArticleRepo;
+@inject SQLEmployeeRepository SQLEmployeesRepo;
+@inject NavigationManager nav;
+<h3>DeleteBonCommande</h3>
+<form class="form-control">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="Id" class="control-label">Id : </label>
+                <label>@obj.Id</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="date" class="control-label">Date : </label>
+                <label name="date">@obj.Date.ToShortDateString()</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="qte" class="control-label">Quantité : </label>
+                <label>@obj.Quantite</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="Prix" class="control-label">Prix : </label>
+                <label>@obj.PrixCommande</label>
+            </div>
+        </div>
+          <div class="col-md-8">
+            <div class="for-group">
+                <label for="firstname" class="control-label">First Name : </label>
+                <label>@name</label>
+            </div>
+        </div> 
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="firstname" class="control-label">Marque : </label>
+                <label>@marque</label>
+            </div>
+        </div> 
+        <div class="col-md-4">
+            <div class="form-group">
+                <a class="btn btn-danger" @onclick="DeleteCommande" >Delete ! </a>
+                <a  class="btn btn-success" @onclick="Cancel"> Cancel </a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter]
+    public string Idd { get; set; }
+    public string name { get; set; }
+    public string marque { get; set; }
+
+    Commande obj = new Commande();
+    protected override async Task OnInitializedAsync()
+    {
+        obj = await Task.Run(() => SQLBonCommandeRepo.GetCommandeById(Convert.ToInt32(Idd)));
+        name=obj.Employee.FirstName;
+        marque = obj.Article.Marque;
+    }
+
+    private async void DeleteCommande()
+    {
+        try
+        {
+            await SQLBonCommandeRepo.DeleteBonCommande(obj);
+            nav.NavigateTo("/BonDeCommande"); 
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting Commande: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        nav.NavigateTo("BonDeCommande");
+    }
+
+}

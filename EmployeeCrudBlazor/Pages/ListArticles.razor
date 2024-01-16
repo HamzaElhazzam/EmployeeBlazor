@@ -1,0 +1,63 @@
+﻿@page "/articleslist"
+@using EmployeeCrudBlazor.Data
+@inject SQLArticleRepository articleservice
+
+<h3 class="oi oi-list"> Article List</h3>
+@if (articles is null)
+{
+    <p><em>Loading Articles...</em></p>
+}
+else
+{
+    <div class="container">
+
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Designation</th>
+                        <th scope="col">Marque</th>
+                        <th scope="col">Prix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var art in articles)
+                    {
+                        <tr>
+                            <th scope="row">@art.Id</th>
+                            <td>@art.Designation</td>
+                            <td>@art.Marque</td>
+                            <td>@art.Prix</td>
+                            
+                            <td>
+                                <a class="nav-link btn btn-outline-success oi oi-pencil" href=EditArticle/@art.Id>
+                                    Edit
+                                </a>
+                                
+                            </td>
+                            <td>
+                                <a class="nav-link btn btn-outline-danger oi oi-trash" href="/DeleteArticle/@art.Id">
+                                    Delete
+                                </a>
+                            </td>
+                           
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <a class="nav-link" href="addArticle">
+            <span class="oi oi-plus text-green" aria-hidden="true">Add New Article</span>
+        </a>
+    </div>
+}
+
+@code {
+    List<Article> articles;
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await Task.Run(() => articleservice.GetAllArticles());
+    }
+}

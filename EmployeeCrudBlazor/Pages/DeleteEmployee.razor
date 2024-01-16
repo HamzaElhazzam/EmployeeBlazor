@@ -1,0 +1,100 @@
+﻿@page "/DeleteClient/{Id}"
+
+@using EmployeeCrudBlazor.Data
+@inject SQLEmployeeRepository employeeService
+@inject NavigationManager NavigationManager
+
+<h3>Delete Article</h3>
+
+<form class="form-control">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="Id" class="control-label">Id : </label>
+                <label>@obj.Id</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="FirstName" class="control-label">First Name : </label>
+                <label name="FirstName">@obj.FirstName</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="LastName" class="control-label">Last Name : </label>
+                <label>@obj.LastName</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="PostalCode" class="control-label">Postale Code : </label>
+                <label>@obj.PostalCode</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="Address" class="control-label">Address : </label>
+                <label>@obj.Address</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="EmailAddress" class="control-label">Email Address : </label>
+                <label>@obj.EmailAddress</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="PhoneNumber" class="control-label">Phone Number : </label>
+                <label>@obj.PhoneNumber</label>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="for-group">
+                <label for="City" class="control-label">City : </label>
+                <label>@obj.City</label>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <input type="button" class="btn btn-danger" @onclick="DeleteEmployees" value="Delete Client !" />
+            <input type="button" class="btn btn-success" @onclick="Cancel" value="Cancel" />
+        </div>
+    </div>
+
+
+
+</form>
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    Employee obj = new Employee(); 
+    protected override async Task OnInitializedAsync()
+    {
+        obj = await Task.Run(() => employeeService.GetEmployeeById(Convert.ToInt32(Id)));
+    }
+
+    protected async void DeleteEmployees()
+    {
+        try
+        {
+            await employeeService.DeleteEmployee(obj);
+            NavigationManager.NavigateTo("Clients");
+        }
+        catch (Exception)
+        {
+            
+        }
+        
+    }
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("Clients");
+    }
+    
+}

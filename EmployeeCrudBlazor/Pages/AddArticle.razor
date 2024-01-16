@@ -1,0 +1,53 @@
+﻿@page "/addArticle"
+
+@using EmployeeCrudBlazor.Data
+@using Microsoft.Data.SqlClient
+@inject SQLArticleRepository articleService
+@inject NavigationManager NavigationManager
+
+<EditForm Model="obj" OnValidSubmit="CreateNewArticle">
+
+
+<div class="container">
+    <h3 class="oi oi-dollar text-green" aria-hidden="true"> Add New Article</h3>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row">
+        <div class="col-lg-12">
+            <label for="Designation" class="control-label">Designation</label>
+            <input form="Designation" class="form-control" @bind="@obj.Designation" />
+            <ValidationMessage For="@(() => obj.Designation)" />
+        </div>
+        <div class="col-lg-12">
+            <label for="Marque" class="control-label">Marque</label>
+            <input form="Marque" class="form-control" @bind="@obj.Marque" />
+            <ValidationMessage For="@(() => obj.Marque)" />
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <label for="Prix" class="control-label">Prix</label>
+        <input form="Prix" class="form-control" @bind="@obj.Prix" />
+        <ValidationMessage For="@(() => obj.Prix)" />
+    </div>
+    <div class="row">
+        <div class="col mt-3">
+            <input type="submit" class="btn btn-primary" value="Save Article" />
+            <input type="button" class="btn btn-danger" @onclick="Cancel" value="Cancel" />
+        </div>
+    </div>
+        
+</div>
+</EditForm>
+@code {
+    Article obj = new Article();
+    
+    protected async void CreateNewArticle()
+    {
+        await articleService.AddArticle(obj);
+        NavigationManager.NavigateTo("articleslist");
+    }
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

@@ -1,0 +1,94 @@
+﻿@inject SQLArticleRepository SQLArticleRepo;
+@{
+    var showClass = isVisible ? "d-block" : "d-none";
+}
+<style>
+    .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        border-radius:10%;
+        box-shadow:10%;
+    }
+</style>
+
+<div class="popup @showClass">
+    
+    <!-- Bootstrap Toast Container -->
+    <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <p class="me-auto display-5">List of articles</p>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Hide"></button>
+            </div>
+
+            <div class="toast-body">
+                <div class="row">
+                    <div class="col-lg-8 ">
+                        <input class="form-control" type="text" @bind="searchKeyword" placeholder="Search for articles" />
+                       
+                    </div>
+                    <div class="col-lg-4 ">
+                        <button @onclick="Search" class="btn btn-primary">Search</button>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Designation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var article in searchResults)
+                                {
+                                    <tr>
+                                        <td>@article.Id</td>
+                                        <td>@article.Designation</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+               
+                
+                
+                
+
+            </div>
+        </div>
+    </div>
+
+   
+</div>
+@code {
+    private string searchKeyword;
+    private bool isVisible;
+    private List<Article> searchResults = new List<Article>();
+
+    private async Task Search()
+    {
+        // Perform search logic and populate searchResults
+        // You can use your SQLArticleRepository or any other service for article search
+        searchResults = await SQLArticleRepo.GetAllArticlesByMarque(searchKeyword.ToString());
+    }
+   
+
+    public void Show()
+    {
+        isVisible = true;
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        isVisible = false;
+        StateHasChanged();
+    }
+}

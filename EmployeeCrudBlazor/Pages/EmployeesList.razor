@@ -1,0 +1,105 @@
+﻿@page "/Clients"
+@using EmployeeCrudBlazor.Data
+@inject NavigationManager navigation
+@inject SQLEmployeeRepository employeeService
+
+<h3 class="oi oi-list"> Clients List</h3>
+@if(employees is null)
+{
+    <p><em>Loading Clients...</em></p>
+}
+else
+{
+
+        <div class="container">
+
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">First Name</th>
+                            <th scope="col">Last Name</th>
+                            <th scope="col">Postal Code</th>
+                            <th scope="col">Adresse</th>
+                            <th scope="col">Email Adresse</th>
+                            <th scope="col">Phone Number</th>
+                            <th scope="col">City</th>
+                            <th scope="col">Edit</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var emp in employees)
+                        {
+                            <tr>
+                                <th scope="row">@emp.Id</th>
+                                <td>@emp.FirstName</td>
+                                <td>@emp.LastName</td>
+                                <td>@emp.PostalCode</td>
+                                <td>@emp.Address</td>
+                                <td>@emp.EmailAddress</td>
+                                <td>@emp.PhoneNumber</td>
+                                <td>@emp.City</td>
+                                <td>
+                                    <a class="nav-link btn btn-outline-success" href=/EditClient/@emp.Id>
+                                        <span class="oi oi-pencil" aria-hidden="true">Edit</span>
+                                    </a>
+                                </td>
+                                <td>
+                                <a class="nav-link btn btn-outline-danger" @onclick="ShowConfirmationAsync">
+                                        <span class="oi oi-trash" aria-hidden="true">Delete</span>
+                                        @{idDialog = emp.Id;}
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <a class="nav-link" href="addClient">
+                <span class="oi oi-plus text-green" aria-hidden="true">Add New Client</span>
+
+            </a>
+        </div>
+}
+<ConfirmDialog @ref="dialog" />
+@code {
+    private int idDialog;
+    List<Employee> employees;
+    private EditContext editContext;
+    private ConfirmDialog dialog = default!;
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await Task.Run(() => employeeService.GetAllEmployees());
+        editContext = new EditContext(new Employee());
+    }
+    private async Task ShowConfirmationAsync()
+    {
+        Employee cmd = await employeeService.GetEmployeeById(idDialog);
+        var confirmation = await dialog.ShowAsync(
+            title: "Are you sure you want to delete this?",
+            message1: "This will delete the record. Once deleted can not be rolled back.",
+            message2: $"Do you want to delete commande number {idDialog}?");
+
+        if (confirmation)
+        {
+            try
+            {
+                await employeeService.DeleteEmployee(cmd);
+                employees = await employeeService.GetAllEmployees();
+                navigation.NavigateTo("/Clients");
+            }
+            catch (Exception x)
+            {
+                var confirmation1 = await dialog.ShowAsync(title: "Delete Employee Error", message1: $"{x.Message}", message2: "You cannot delete this employee because already ordered one or more articles");
+            }
+            
+        }
+        else
+        {
+
+        }
+    }
+}

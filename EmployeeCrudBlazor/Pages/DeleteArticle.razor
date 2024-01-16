@@ -1,0 +1,106 @@
+﻿@page "/DeleteArticle/{Id}"
+
+@using EmployeeCrudBlazor.Data
+@inject SQLArticleRepository articleService
+@inject NavigationManager NavigationManager
+
+<h1 class="oi oi-trash display-3 text-danger">Delete Article</h1>
+
+<form class="form-control">
+    <div class="row display-6">
+        <div class="col-md-5 col-sm-6">
+            
+            <label for="Id" class="control-label">Id : </label>
+        </div>
+        <div class="col-md-5 col-sm-4">
+            <label>@obj.Id</label>
+        </div>
+    </div>
+    <div class="row display-6">
+        <div class="col-md-5">
+            <label for="Designation" class="control-label">Designation : </label>
+            
+        </div>
+        <div class="col-md-5">
+            <label name="Designation">@obj.Designation</label>
+        </div>
+    </div>
+    <div class="row display-6">
+        <div class="col-md-5">
+            <label for="Marque" class="control-label">Marque : </label>
+
+        </div>
+        <div class="col-md-5">
+            <label>@obj.Marque</label>
+        </div>
+
+    </div>
+    <div class="row display-6">
+        <div class="col-md-5">
+            <label for="Prix" class="control-label">Prix : </label>
+
+        </div>
+        <div class="col-md-5">
+            <label>@obj.Prix</label>
+        </div>
+    </div>
+    <div class="row">
+
+        <div class="col-md-5">
+                <input type="button" class="btn btn-success" @onclick="Cancel" value="Cancel" />
+        </div>
+        <div class="col-md-5">
+            <input type="button" class="btn btn-danger" @onclick="DeleteArticleById" value="Delete Article !" />
+        </div>
+    </div>
+    
+   
+    <Modal @ref="modal" Title="Delete Error">
+        <BodyTemplate>
+            
+            You cannot delete the article, because already ordered !
+        </BodyTemplate>
+        <FooterTemplate>
+            <Button Color="ButtonColor.Danger" @onclick="OnHideModalClick">Close</Button>
+        </FooterTemplate>
+    </Modal>
+
+</form>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    Article obj = new Article();
+    private Modal modal = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        obj = await Task.Run(() => articleService.GetArticleById(Convert.ToInt32(Id)));
+    }
+
+    protected async void DeleteArticleById()
+    {
+        try
+        {
+            await articleService.DeleteArticle(obj);
+            NavigationManager.NavigateTo("articleslist");
+        }
+        catch (Exception)
+        {
+            await modal.ShowAsync();
+        }
+        
+    }
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+   
+
+    
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+}

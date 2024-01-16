@@ -1,0 +1,99 @@
+﻿@page "/ListArticleDetails"
+
+@inject NavigationManager navigationManager;
+@inject SQLBonCommandeRepository commandeservice;
+@inject SQLArticleRepository articleservice
+
+<span class="oi oi-list"></span><h6>Lists of ordered articles</h6>
+@if (articles is null)
+{
+    <p><em>Loading Articles...</em></p>
+}
+else
+{
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Designation</th>
+                        <th scope="col">Marque</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var art in articles)
+                    {
+                        <tr>
+                            <th scope="row">@art.Id</th>
+                            <td>@art.Designation</td>
+                            <td>@art.Marque</td>
+                            <td>@art.Prix</td>
+                            <td>
+                                <a class="nav-link btn btn-outline-warning oi oi-pencil" @onclick="()=>Details(art.Id)"  >
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <a class="nav-link" href="addArticle">
+            <span class="oi oi-plus text-green" aria-hidden="true">Add New Article</span>
+        </a>
+    </div>
+    @if(commandes is null)
+    {
+        
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Id Commande</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">First name</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var art in commandes)
+                    {
+                        <tr>
+                            <th scope="row">@art.Id</th>
+                            <td>@art.Date</td>
+                            <td>@(art.Employee != null ? art.Employee.FirstName : "N/A")</td>
+                            <td>@art.PrixCommande</td>
+                            <td>@art.Quantite</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    }
+}
+
+
+@code {
+    List<Article> articles;
+    List<Commande> commandes;
+
+    public int Id { get; set; }
+    public string firstName { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await Task.Run(() => articleservice.GetArticleCommander());
+    }
+    protected async Task Details(int id)
+    {
+        commandes = await commandeservice.GetAllCommandeByArticleId(id);
+    }
+}

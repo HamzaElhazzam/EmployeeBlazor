@@ -1,0 +1,83 @@
+﻿@page "/EditBonCommmande/{Id}"
+@inject SQLBonCommandeRepository SQLBonCommandeRepo;
+@inject SQLArticleRepository SQLArticleRepo;
+@inject SQLEmployeeRepository SQLEmployeesRepo;
+@inject NavigationManager navigationManager;
+<h3>EditBonCommande</h3>
+<form class="form-control">
+    <div class="row">
+        <div class="col-md-8">
+            <label for="Id" class="control-label">Id : </label>
+            <input readonly form="Id" class="form-control" @bind="@obj.Id" />
+        </div>
+        <div class="col-md-8">
+            <label for="Date" class="control-label">Date : </label>
+            <input form="Date" class="form-control" @bind="@obj.Date" />
+        </div>
+        <div class="col-md-8">
+            <label for="Quantite" class="control-label">Quantité : </label>
+            <input form="Quantite" class="form-control" @bind="@obj.Quantite" />
+        </div>
+        <div class="col-md-8">
+            <label for="PrixCommande" class="control-label">Prix Commande :</label>
+            <input form="PrixCommande" class="form-control" @bind="@obj.PrixCommande" />
+        </div>
+        <div class="col-md-8">
+       
+            <label for="employeeId">Select Employee</label>
+            <select class="form-control" id="employeeId" @bind="obj.Id_Employee">
+                @foreach (var employee in employees)
+                {
+                    <option value="@employee.Id" selected="@(employee.Id == obj.Id_Employee)">@employee.FirstName</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-8">
+
+            <label for="articleId">Select Article</label>
+            <select class="form-control" id="articleId" @bind="obj.Id_Article">
+                @foreach (var article in articles)
+                {
+                    <option value="@article.Id" selected="@(article.Id == obj.Id_Article)">@article.Marque</option>
+                }
+            </select>
+   
+        </div>
+
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <input type="button" class="btn btn-primary" @onclick="UpdateCommande" value="Save Edit" />
+            <input type="button" class="btn btn-danger" @onclick="Cancel" value="Cancel" />
+        </div>
+    </div>
+</form> 
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+
+    Commande obj = new Commande();
+    List<Employee> employees = new List<Employee>();
+    List<Article> articles = new List<Article> ();
+  
+    protected override async Task OnInitializedAsync()
+    {
+        obj = await Task.Run(() => SQLBonCommandeRepo.GetCommandeById(Convert.ToInt32(Id)));
+        employees = await Task.Run(() => SQLEmployeesRepo.GetAllEmployees());
+        articles = await Task.Run(() => SQLArticleRepo.GetAllArticles());
+    }
+
+    public async Task UpdateCommande()
+    {
+        await SQLBonCommandeRepo.EditBonCommande(obj);
+        navigationManager.NavigateTo("/BonDeCommande");
+    }
+    public void Cancel()
+    {
+        navigationManager.NavigateTo("/BonDeCommande");
+    }
+
+}
